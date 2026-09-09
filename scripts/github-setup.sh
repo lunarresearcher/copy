@@ -13,7 +13,7 @@ fi
 
 repo="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
 
-description="CLI-first copytrade terminal for Robinhood Chain. Tracks profit hunters, fresh RH tokens, COPY wallets, paper positions, and a native execution queue in one moving terminal."
+description="Working CLI-first copytrade terminal for Robinhood Chain — live token discovery, profit hunters, COPY wallets, paper engine and native queue."
 
 gh repo edit "$repo" --description "$description" \
   --add-topic copytrade \

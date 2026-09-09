@@ -1,7 +1,7 @@
 {
   "name": "copy-robinhood-cli",
-  "version": "1.8.0",
-  "description": "CLI-first copytrade terminal for Robinhood Chain with profit hunters, fresh RH markets, COPY wallets, paper positions, and a native execution queue.",
+  "version": "2.0.0",
+  "description": "Working CLI-first copytrade terminal for Robinhood Chain with live token discovery, profit hunters, COPY wallets, paper positions, and a native execution queue.",
   "type": "module",
   "bin": {
     "copy": "./bin/copy.mjs"

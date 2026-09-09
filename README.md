@@ -1,44 +1,62 @@
 <p align="center">
-  <img src="./assets/copybara-avatar.png" alt="COPYBARA avatar" width="120" />
+  <img src="./assets/copybara-avatar.png" alt="COPYBARA" width="112" />
 </p>
 
 <p align="center">
-  <img src="./assets/copy-banner.png" alt="COPY banner" width="100%" />
+  <img src="./assets/copy-banner.png" alt="COPY — copytrade terminal for Robinhood Chain" width="100%" />
 </p>
 
 <h1 align="center">COPY</h1>
 
 <p align="center">
-  <strong>CLI-first copytrade terminal for Robinhood Chain.</strong><br/>
-  Tracks profit hunters, keeps fresh RH tokens flowing, scores every setup, and drives COPY wallets, paper positions, and a native queue from one moving terminal.
+  <strong>Working CLI-first copytrade terminal for Robinhood Chain.</strong><br/>
+  Profit hunters → fresh RH markets → COPY decision → wallet mirrors → paper positions → native queue.
 </p>
 
 <p align="center">
-  <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-c8ff00?style=flat-square" />
-  <img alt="Robinhood Chain" src="https://img.shields.io/badge/chain-Robinhood%204663-c8ff00?style=flat-square" />
-  <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-0c0c0c?style=flat-square" />
+  <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-c8ff00?style=flat-square&labelColor=050705" />
+  <img alt="Robinhood Chain" src="https://img.shields.io/badge/Robinhood%20Chain-4663-c8ff00?style=flat-square&labelColor=050705" />
+  <img alt="Terminal" src="https://img.shields.io/badge/terminal-live-c8ff00?style=flat-square&labelColor=050705" />
+  <img alt="MIT" src="https://img.shields.io/badge/license-MIT-c8ff00?style=flat-square&labelColor=050705" />
 </p>
 
 <p align="center">
-  <a href="#install">install</a> ·
-  <a href="#sixty-seconds">60 seconds</a> ·
-  <a href="#terminal">terminal</a> ·
-  <a href="#copy-wallets">copy wallets</a> ·
-  <a href="#commands">commands</a> ·
-  <a href="#tests">tests</a>
+  <a href="#install">Install</a> ·
+  <a href="#terminal">Terminal</a> ·
+  <a href="#copy-wallets">COPY Wallets</a> ·
+  <a href="#copy-flow-walls">Flow Walls</a> ·
+  <a href="#commands">Commands</a>
 </p>
 
 ---
 
 ## About
 
-**COPY is a working CLI-first copytrade terminal for Robinhood Chain.**
+**COPY is a working local-first copytrade terminal built around Robinhood Chain market flow.**
 
-It tracks profitable traders, keeps fresh Robinhood markets flowing into a growing session universe, evaluates every setup through COPY-native flow walls, and keeps COPY WALLETS, paper positions, live marks, and the native execution queue moving from one terminal.
+It continuously grows a Robinhood token universe, follows profitable-wallet context, evaluates every setup through COPY-native flow walls, explains every `FIRE / SKIP`, rotates COPY wallet mirrors, marks paper positions, and keeps the native execution queue visible from the same terminal.
 
-The terminal is the product. The web app is a lightweight wrapper around the same COPY data and execution stack.
+The CLI is the main product. The browser layer is only an optional wrapper around the same data and queue stack.
 
-![COPY terminal](./assets/terminal.png)
+### Current build
+
+| Engine | Status | What is already in the repo |
+| --- | --- | --- |
+| Token discovery | **WORKING** | growing RH market universe + newest-first event stream |
+| Profit hunters | **WORKING** | ranked Fomo context + tracked source inspection |
+| COPY decision | **WORKING** | `EDGE / DEPTH / TURN / MOMO / PRICE` + refusal reason |
+| COPY WALLETS | **WORKING** | rotating trader/token mirrors + fast PnL deltas + sparklines |
+| Paper engine | **WORKING** | open, mark, TP, SL, trailing, clock exits |
+| Native queue | **WORKING** | server-side execution boundary without browser wallet connect |
+| Terminal UI | **WORKING** | full-screen TUI, keyboard controls, hot radar, source pulse, positions, exits |
+
+<p align="center">
+  <img src="./assets/terminal.png" alt="COPY terminal running" width="100%" />
+</p>
+
+> `npm start` opens the terminal. `npm run hunt` runs the raw scrolling feed. `npm run paper` runs the local paper engine.
+
+---
 
 ## What COPY does
 

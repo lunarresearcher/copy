@@ -1,12 +1,10 @@
 # GitHub setup
 
-Everything below is ready for the repository page.
+The repository already contains the banner, avatar, README, terminal screenshot, topics list, and a helper for repository metadata.
 
 ## About
 
-Use this as the GitHub repository description:
-
-> CLI-first copytrade terminal for Robinhood Chain. Tracks profit hunters, fresh RH tokens, COPY wallets, paper positions, and a native execution queue in one moving terminal.
+**Working CLI-first copytrade terminal for Robinhood Chain — live token discovery, profit hunters, COPY wallets, paper engine and native queue.**
 
 ## Topics
 
@@ -24,13 +22,7 @@ nodejs
 capybara
 ```
 
-## Images
-
-- README / social banner: `assets/copy-banner.png`
-- Avatar / project icon: `assets/copybara-avatar.png`
-- Terminal screenshot: `assets/terminal.png`
-
-## One-command GitHub setup
+## Apply About + topics
 
 After the repo is pushed and GitHub CLI is authenticated:
 
@@ -38,8 +30,12 @@ After the repo is pushed and GitHub CLI is authenticated:
 npm run github:setup
 ```
 
-That command updates the GitHub About description and topics for the current repository.
+The script detects the current repository and updates its GitHub description/topics automatically.
 
-## Language stats
+## Images
 
-The large standalone HTML previews are marked as `linguist-generated` in `.gitattributes`. GitHub Linguist therefore treats them as generated artifacts instead of letting them dominate the repository language bar.
+- README banner: `assets/copy-banner.png`
+- COPYBARA avatar: `assets/copybara-avatar.png`
+- Terminal screenshot: `assets/terminal.png`
+
+Generated standalone browser previews are intentionally ignored by Git. They can be recreated locally with the preview scripts, but they are not shipped in the Git-ready repository so GitHub language stats reflect the actual CLI/source code instead of generated HTML.
