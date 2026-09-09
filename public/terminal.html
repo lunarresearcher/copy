@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#030503" />
+  <title>COPY // Terminal</title>
+  <meta name="description" content="COPY terminal — Robinhood Chain smart-wallet copytrade board." />
+  <link rel="stylesheet" href="/terminal.css" />
+</head>
+<body>
+  <div class="screen-noise"></div>
+  <header class="term-topbar">
+    <div class="term-brand">
+      <span class="capy-mini" aria-hidden="true"></span>
+      <span><b>COPY</b><small>// COPYBARA TERMINAL</small></span>
+    </div>
+    <div class="term-path"><span>copy@rh</span>:<b>~/terminal</b><i>$</i><em id="bootCommand">engine --watch smart-money --chain 4663</em><span class="cursor"></span></div>
+    <div class="term-statuses">
+      <span class="status-pill"><i></i> RH CHAIN <b id="chainPill">SNAPSHOT</b></span>
+      <span class="status-pill native"><i></i> NATIVE <b id="executorPill">QUEUE</b></span>
+      <a class="dash-link" href="/">DASHBOARD ↗</a>
+    </div>
+  </header>
+
+  <main class="terminal-shell">
+    <section class="terminal-toolbar">
+      <div class="mode-switch" role="group" aria-label="Execution mode">
+        <button data-mode="feed" class="active">FEED</button>
+        <button data-mode="paper">PAPER</button>
+        <button data-mode="native">NATIVE QUEUE</button>
+      </div>
+      <button id="engineToggle" class="action primary">START ENGINE <kbd>P</kbd></button>
+      <button id="armToggle" class="action arm" disabled>ARM NATIVE</button>
+      <button id="soundToggle" class="action">SOUND OFF</button>
+      <div class="feed-filters">
+        <button data-filter="all" class="active">ALL</button>
+        <button data-filter="pass">PASS</button>
+        <button data-filter="skip">SKIP</button>
+      </div>
+      <label class="search-box"><span>/</span><input id="searchInput" placeholder="symbol / token / trader" autocomplete="off" /></label>
+      <time id="utcClock">00:00:00 UTC</time>
+    </section>
+
+    <section id="healthBar" class="health-bar"><i></i><span id="healthText">BOOTSTRAP READY · waiting for live providers</span><b id="pulseAge">pulse 0s</b></section>
+
+    <section class="counter-grid">
+      <article><span>CANDIDATES</span><b id="countCandidates">0</b><small>real RH markets</small></article>
+      <article><span>PASSED</span><b id="countPass">0</b><small>current rules</small></article>
+      <article><span>OPEN PAPER</span><b id="countOpen">0</b><small>dry-run positions</small></article>
+      <article><span>SESSION PNL</span><b id="sessionPnl">+0.00%</b><small>paper mark</small></article>
+      <article><span>PROFIT HUNTERS</span><b id="countHunters">0</b><small>Fomo snapshots</small></article>
+      <article><span>UPTIME</span><b id="uptime">00:00:00</b><small>terminal session</small></article>
+    </section>
+
+    <section class="terminal-grid">
+      <aside class="left-rail">
+        <div class="panel block rules-block">
+          <div class="block-head"><span>RISK WALLS</span><b>LIVE EDIT</b></div>
+          <div id="rulesList" class="rules-list"></div>
+          <div class="fixed-rules">
+            <div><span>BUY SIZE</span><b id="buySizeLabel">0.01 ETH</b></div>
+            <div><span>SESSION BUDGET</span><b>0.05 ETH</b></div>
+            <div><span>TAKE PROFIT</span><b>+80%</b></div>
+            <div><span>STOP LOSS</span><b>-35%</b></div>
+            <div><span>TRAILING</span><b>25%</b></div>
+            <div><span>MAX HOLD</span><b>45m</b></div>
+          </div>
+        </div>
+
+        <div class="panel block leader-block">
+          <div class="block-head"><span>FOMO TOP FLOW</span><b id="leaderWindow">24H</b></div>
+          <div id="leaderList" class="leader-list"></div>
+        </div>
+      </aside>
+
+      <section class="center-stage">
+        <div class="panel feed-panel">
+          <div class="feed-head">
+            <div><span>SMART COPY FEED</span><small>newest decision first · click a row for the whole read</small></div>
+            <div class="feed-meta"><i></i><b id="feedState">FEED ONLY</b><span id="feedSubtitle">real token snapshot</span></div>
+          </div>
+          <div class="feed-columns"><span>TIME</span><span>TOKEN</span><span>SMART WALLET</span><span>MC / LIQ</span><span>SCORE</span><span>DECISION</span></div>
+          <div id="candidateFeed" class="candidate-feed"></div>
+        </div>
+
+        <div class="panel console-panel">
+          <div class="console-head"><span>ENGINE LOG</span><b id="logCount">0 lines</b><button id="clearLog">CLEAR</button></div>
+          <div id="consoleLog" class="console-log" aria-live="polite"></div>
+          <form id="commandForm" class="command-line">
+            <span>copy@rh:~$</span><input id="commandInput" autocomplete="off" spellcheck="false" placeholder="help" /><span class="cursor"></span>
+          </form>
+        </div>
+      </section>
+
+      <aside class="right-rail">
+        <div class="panel inspector-panel">
+          <div class="inspector-brand"><img src="/assets/copybara-terminal.webp" alt="COPYBARA" /><span>COPYBARA / DECISION AGENT</span></div>
+          <div id="inspectorEmpty" class="inspector-empty"><b>SELECT A TOKEN</b><span>Click any row in the feed to inspect every wall and route.</span></div>
+          <div id="inspector" class="inspector hidden"></div>
+        </div>
+
+        <div class="panel positions-panel">
+          <div class="block-head"><span>POSITIONS</span><b id="positionMode">PAPER</b></div>
+          <div id="positionsList" class="positions-list"></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="/bootstrap-state.js"></script>
+  <script src="/terminal.js"></script>
+</body>
+</html>

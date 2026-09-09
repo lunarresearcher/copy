@@ -1,0 +1,25 @@
+{
+  "name": "copy-robinhood-cli",
+  "version": "1.2.0",
+  "description": "COPY — local-first Robinhood Chain copytrade terminal with Fomo profit hunters, token scoring, paper positions and a web wrapper.",
+  "type": "module",
+  "bin": {
+    "copy": "./bin/copy.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node bin/copy.mjs terminal",
+    "terminal": "node bin/copy.mjs terminal",
+    "hunt": "node bin/copy.mjs hunt",
+    "paper": "node bin/copy.mjs paper",
+    "doctor": "node bin/copy.mjs doctor --probe",
+    "demo": "node bin/copy.mjs terminal --demo",
+    "web": "node server.mjs",
+    "test": "node scripts/smoke-test.mjs && node scripts/cli-test.mjs",
+    "preview:terminal": "node scripts/generate-terminal-preview.mjs"
+  },
+  "keywords": ["robinhood-chain", "copytrade", "terminal", "fomo", "smart-money", "crypto"],
+  "license": "MIT"
+}

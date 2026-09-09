@@ -1,0 +1,16 @@
+import fs from 'node:fs';import path from 'node:path';import { State } from '../src/services/state.mjs';
+const root=path.resolve(new URL('..',import.meta.url).pathname),need=['server.mjs','public/index.html','public/styles.css','public/app.js','public/bootstrap-state.js','src/providers/fomo.mjs','src/providers/robinhood.mjs','src/providers/dexscreener.mjs','src/services/copy-engine.mjs','src/services/native-executor.mjs','contracts/CopyRegistry.sol','data/seed.json'];let fail=0;
+for(const f of need)if(!fs.existsSync(path.join(root,f))){console.error('missing',f);fail++}
+const html=fs.readFileSync(path.join(root,'public/index.html'),'utf8'),css=fs.readFileSync(path.join(root,'public/styles.css'),'utf8'),js=fs.readFileSync(path.join(root,'public/app.js'),'utf8'),fomo=fs.readFileSync(path.join(root,'src/providers/fomo.mjs'),'utf8'),seed=JSON.parse(fs.readFileSync(path.join(root,'data/seed.json'),'utf8'));
+for(const token of ['PROFIT HUNTERS','CONFIRMED RH TOKEN','SMART FLOW','ALPHA QUEUE','COPY AUTOPILOT','NATIVE','24H','7D','30D'])if(!html.includes(token)){console.error('html missing',token);fail++}
+for(const token of ['gmgnHref','captureMarketPulse','renderFlow','renderAlpha','renderProfitTape','renderMetrics','renderCopyCenter','openCopyConfig','standaloneDexSync'])if(!js.includes(token)){console.error('js missing',token);fail++}
+if(js.includes('https://dexscreener.com/robinhood/')||js.includes('robinhoodchain.blockscout.com/token/')){console.error('token UI still links outside GMGN/Fomo');fail++}
+if(!js.includes('https://gmgn.ai/robinhood/token/')){console.error('GMGN token deep link missing');fail++}
+if(html.includes('CONNECT WALLET')||js.includes('eth_requestAccounts')||js.includes('window.ethereum')){console.error('browser wallet dependency still present');fail++}
+if(!fs.readFileSync(path.join(root,'src/services/native-executor.mjs'),'utf8').includes('NATIVE') && !fs.readFileSync(path.join(root,'src/services/native-executor.mjs'),'utf8').includes('NativeExecutor')){console.error('native executor missing');fail++}
+if(!fomo.includes('fomp.app/?tw=')||!fomo.includes("publicCapture(window='24h'")){console.error('multi-window Fomo fallback missing');fail++}
+if(!css.includes('--green:#72ff86')||!css.includes('.stream-enter')||!css.includes('.token-pill')){console.error('styles missing');fail++}
+if((seed.dexTokens||[]).length<5||!seed.leaderboard.some(x=>x.pnl7d!=null)||!seed.leaderboard.some(x=>x.pnl30d!=null)){console.error('dense real snapshot missing');fail++}
+const st=new State('/tmp/copy-test-cache.json',seed);st.recompute();if(!st.data.alpha.length||st.data.alpha.some(x=>String(x.source||'').includes('SHOWCASE'))){console.error('alpha is not real-only');fail++}if(st.data.hunters.length<50){console.error('hunter board too sparse');fail++}
+const sample=st.data.hunters.find(x=>x.handle);if(sample){const rule=st.setCopyRule({kind:'profile',subject:sample.handle,name:sample.name||sample.handle,sizeEth:.05,minConviction:1});if(!rule?.id||!st.data.copyRules.length){console.error('copy rule engine missing');fail++}}
+console.log(fail?'FAIL':'PASS',need.length,'files ·',st.data.alpha.length,'real RH tokens ·',st.data.hunters.length,'hunters');process.exit(fail?1:0);

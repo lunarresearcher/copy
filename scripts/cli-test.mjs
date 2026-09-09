@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {CopyRuntime} from '../src/cli/runtime.mjs';
+import {evaluate,DEFAULT_RULES} from '../src/cli/rules.mjs';
+const rt=await new CopyRuntime({demo:true}).init();
+assert.ok(rt.hunters.length>=50,'seed should contain many hunters');
+assert.ok(rt.tokens.length>=5,'seed should contain RH tokens');
+assert.ok(rt.candidates.length>=5,'candidates should build');
+const ok=evaluate({token:{score:90,marketCap:1e6,liquidity:1e6},trader:{name:'x'},rules:DEFAULT_RULES,openPositions:0,spentEth:0});assert.equal(ok.verdict,'FIRE');
+const bad=evaluate({token:{score:20,marketCap:1e9,liquidity:1},trader:null,rules:DEFAULT_RULES,openPositions:3,spentEth:.05});assert.equal(bad.verdict,'SKIP');assert.ok(bad.reasons.length>=5);
+console.log(`cli ok · ${rt.hunters.length} hunters · ${rt.tokens.length} RH tokens · ${rt.candidates.length} candidates`);

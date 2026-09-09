@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: copy-terminal
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8787
+      - key: RH_RPC_URL
+        sync: false
+      - key: REPLYNODES_API_KEY
+        sync: false
+      - key: FOMO_BEARER_TOKEN
+        sync: false

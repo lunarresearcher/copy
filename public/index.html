@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#050806" />
+  <title>COPY — Robinhood Copytrade Terminal</title>
+  <meta name="description" content="COPY tracks profitable Fomo traders, Robinhood smart-money flow and native server-side copytrade automation." />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="noise"></div><div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="topbar">
+    <a class="brand" href="#terminal"><span class="mark mascot-mark" aria-hidden="true"></span><span><b>COPY</b><small>ROBINHOOD COPYTRADE TERMINAL</small></span></a>
+    <nav>
+      <a class="active" href="#hunters">Hunters</a>
+      <a href="#flow">Smart Flow</a>
+      <a href="#alpha">Alpha Queue</a>
+      <a href="#copytrade">Autopilot</a>
+      <a href="#fastfollow">Fast Follow</a>
+    </nav>
+    <div class="top-actions"><div id="globalStatus" class="network-pill"><i></i><span>RH CHAIN</span><b>LIVE</b></div><div id="nativeStatus" class="native-pill"><i></i><span>NATIVE</span><b>QUEUE</b></div></div>
+  </header>
+
+  <main id="terminal" class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">COPYTRADE <span>/</span> ROBINHOOD CHAIN <span>/</span> FOMO PROFIT FLOW</div>
+        <h1>COPY THE WALLETS.<br><em>CATCH THE MOVE.</em></h1>
+        <p>COPY finds profit traders, watches their Robinhood activity, filters entries by risk and conviction, then routes the order into COPY’s native execution queue when the setup passes.</p>
+        <div class="hero-ctas"><button class="primary" data-scroll="#hunters">FIND PROFIT TRADERS</button><button class="ghost" data-scroll="#flow">WATCH LIVE FLOW</button></div>
+        <div class="hero-foot"><span><i></i><b id="heroHunterCount">—</b> FOMO HUNTERS</span><span><b id="heroTokenCount">—</b> REAL RH TOKENS</span><span>COPY ENGINE 24/7</span></div>
+      </div>
+      <div class="hero-radar" aria-hidden="true">
+        <div class="copybara-art"><span>COPYBARA // ONLINE</span></div>
+        <span class="radar-label">LIVE SMART FLOW</span>
+        <div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-ring r3"></div><div class="radar-cross x"></div><div class="radar-cross y"></div>
+        <i class="point p1"></i><i class="point p2 amber"></i><i class="point p3"></i><i class="point p4"></i><i class="point p5"></i>
+        <div class="core mascot-core"></div>
+        <div class="radar-card rc-a"><small>FOMO HUNTER</small><b id="heroLeader">—</b><span id="heroLeaderPnl">waiting for feed</span></div>
+        <div class="radar-card rc-b"><small>SMART ENTRY</small><b id="heroToken">SCANNING</b><span id="heroTokenScore">Robinhood tokens</span></div>
+        <div class="radar-card rc-c"><small>COPY AGENT</small><b id="heroHead">COPYBARA</b><span>risk gates armed</span></div>
+      </div>
+    </section>
+
+    <section class="profit-tape" aria-label="Fomo profit tape"><div class="tape-label">PROFIT TAPE</div><div class="tape-viewport"><div id="profitTicker" class="tape-track"><span>Loading Fomo profit leaders…</span></div></div></section>
+
+    <section class="source-strip" id="sourceStrip">
+      <div class="source"><i></i><div><span>FOMO LEADERBOARD</span><small id="fomoSync">—</small></div><b id="fomoSource">CONNECTING</b></div>
+      <div class="source"><i></i><div><span>RH MARKET</span><small id="dexSync">real token profiles</small></div><b id="dexSource">CONNECTING</b></div>
+      <div class="source"><i></i><div><span>PONS FEED</span><small id="chainSync">v1 + v2 curves</small></div><b id="chainSource">CONNECTING</b></div>
+      <div class="source"><i></i><div><span>GMGN LINKOUT</span><small>Robinhood token pages</small></div><b>READY</b></div>
+    </section>
+
+    <section class="metric-grid">
+      <article><span>TOP 20 · 24H PNL</span><b id="metricPnl">$—</b><small>Fomo leaderboard pulse</small><canvas class="spark" data-spark="pnl"></canvas></article>
+      <article><span>PROFIT HUNTERS</span><b id="metricHunters">—</b><small>Fomo 24H / 7D / 30D</small><canvas class="spark" data-spark="hunters"></canvas></article>
+      <article><span>SMART FLOW</span><b id="metricTrades">—</b><small>buy / sell events this session</small><canvas class="spark" data-spark="trades"></canvas></article>
+      <article class="accent"><span>CONVICTION / TOKENS</span><b><span id="convictionCountMetric">—</span> <em>/</em> <span id="metricLaunches">—</span></b><small>clusters / real RH markets</small><canvas class="spark" data-spark="launches"></canvas></article>
+    </section>
+
+    <section class="workspace-surface">
+      <div id="hunters" class="hunters-panel panel">
+        <div class="section-head"><div><span class="kicker">FOMO PROFIT LEADERBOARD</span><h2>PROFIT HUNTERS</h2><p>Rank real Fomo profiles by timeframe. RH token updates when Robinhood activity is confirmed.</p></div><div class="segmented"><button class="active" data-window="24h">24H</button><button data-window="7d">7D</button><button data-window="30d">30D</button></div></div>
+        <div class="hunters-table-wrap">
+          <table class="hunters-table"><thead><tr><th>#</th><th>TRADER</th><th>CONFIRMED RH TOKEN</th><th>DNA</th><th>PNL</th><th>COINS</th><th>TRADES</th><th></th></tr></thead><tbody id="hunterRows"><tr><td colspan="8" class="loading-row">Connecting to live sources…</td></tr></tbody></table>
+        </div>
+        <div class="table-foot"><span id="boardFoot">Source sync pending</span><button id="showMore">SHOW MORE →</button></div>
+      </div>
+
+      <div class="right-stack">
+        <div id="flow" class="panel flow-panel">
+          <div class="panel-head"><div><span class="kicker">SMART MONEY</span><h3>LIVE SMART FLOW</h3></div><div class="live-mini"><i></i><span id="flowState">STREAMING</span></div></div>
+          <div id="flowList" class="flow-list"><div class="empty-state"><div class="loader"></div><b>Listening for trades</b><span>Fomo RH flow + Pons + live RH market</span></div></div>
+        </div>
+        <div class="panel conviction-panel">
+          <div class="panel-head"><div><span class="kicker">CONVICTION ENGINE</span><h3>MULTI-WALLET SIGNALS</h3></div><span class="count-badge" id="convictionCount">0</span></div>
+          <div id="convictionList" class="conviction-list"><div class="mini-empty">Scanning RH buy pressure…</div></div>
+        </div>
+      </div>
+
+      <div id="alpha" class="panel alpha-section">
+        <div class="section-head wide"><div><span class="kicker">ALPHA QUEUE</span><h2>REAL ROBINHOOD TOKENS</h2><p>Ranked by liquidity, flow, momentum and smart-money confirmation. Every card opens on GMGN Robinhood.</p></div><div class="alpha-filters"><button class="active" data-minscore="0">COPY SCORE</button><button data-minscore="70">70+</button><button data-minscore="80">80+</button><button data-minscore="90">90+</button></div></div>
+        <div id="alphaGrid" class="alpha-grid"><div class="alpha-loading"><div class="loader"></div><span>Scanning real Robinhood markets…</span></div></div>
+      </div>
+    </section>
+
+    <section id="copytrade" class="panel copy-center">
+      <div class="copy-center-head">
+        <div class="copy-agent"><span class="copy-agent-avatar"></span><div><small>COPYBARA AGENT</small><b id="copyAgentState">WATCHING THE FLOW</b><em id="copyAgentMeta">risk gates · copy rules · fast follow</em></div></div>
+        <div class="copy-center-title"><span class="kicker">COPY AUTOPILOT</span><h2>STRATEGIES & EXECUTION QUEUE</h2><p>Per-trader rules, conviction gates, entry filters and native server-side execution — no browser wallet required.</p></div>
+        <div class="copy-stats">
+          <span><small>COPYING</small><b id="copyingCount">0</b></span>
+          <span><small>ARMED</small><b id="copyArmedCount">0</b></span>
+          <span><small>SKIPPED</small><b id="copySkippedCount">0</b></span>
+          <span><small>PLANNED SIZE</small><b id="copySizeTotal">0 ETH</b></span>
+        </div>
+      </div>
+      <div class="copy-center-grid">
+        <div class="copy-rules-box"><div class="copy-subhead"><b>ACTIVE COPY RULES</b><span>per-wallet risk controls</span></div><div id="copyRulesList" class="copy-rules-list"></div></div>
+        <div class="copy-activity-box"><div class="copy-subhead"><b>EXECUTION JOURNAL</b><span>ARMED / EXIT / SKIPPED</span></div><div id="copyActivityList" class="copy-activity-list"></div></div>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <div id="watch" class="panel watch-panel">
+        <div class="panel-head roomy"><div><span class="kicker">COPY LIST</span><h2>TRACKED WALLETS</h2><p>Fomo profiles and Robinhood wallets currently feeding your copy strategies.</p></div></div>
+        <form id="watchForm" class="watch-form"><input id="watchInput" autocomplete="off" placeholder="0x… Robinhood wallet" /><button class="ghost" type="submit">+ TRACK WALLET</button></form>
+        <div id="watchList" class="watch-list"></div>
+        <div class="watch-placeholder"><div><i></i><span><b>Wallet discovery runs continuously</b><small>WATCH a profit hunter above or add any RH wallet manually.</small></span></div><strong id="uptime">00:00:00</strong></div>
+      </div>
+
+      <div id="fastfollow" class="panel fast-follow-panel">
+        <div class="panel-head roomy"><div><span class="kicker">EXECUTION</span><h2>FAST FOLLOW</h2></div><span class="dry-badge native-mode">NATIVE</span></div>
+        <button id="ffSignal" class="selected-signal" type="button"><span class="signal-icon">↗</span><span><small>SELECTED SIGNAL</small><b id="ffSignalTitle">Pick a Smart Flow BUY</b><em id="ffSignalMeta">Click a live flow row to load it here.</em></span></button>
+        <div class="ff-grid">
+          <label>BUY SIZE<input id="ffBuySize" value="0.05 ETH" /></label><label>MAX TAX<input id="ffMaxTax" value="3.0%" /></label>
+          <label>SLIPPAGE<input id="ffSlippage" value="10%" /></label><label>MIN CONVICTION<input id="ffConviction" value="3 wallets" /></label>
+        </div>
+        <button id="ffArm" class="primary ff-arm" type="button">QUEUE FAST FOLLOW</button>
+        <p class="ff-note">Runs inside COPY backend. Browser wallet connection is not required.</p>
+      </div>
+    </section>
+
+    <footer><div><span class="kicker">COPY PRINCIPLE</span><h3>FIND WINNERS. FILTER RISK. COPY THE MOVE.</h3></div><p>Fomo profit leaderboard + Robinhood market flow + tracked-wallet confirmation.</p><span class="system-online"><i></i>SYSTEM ONLINE</span></footer>
+  </main>
+
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <aside id="profileDrawer" class="profile-drawer" aria-hidden="true"><button id="drawerClose" class="drawer-close">×</button><div id="drawerContent"></div></aside>
+  <div id="toast" class="toast"></div>
+  <script src="/bootstrap-state.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
