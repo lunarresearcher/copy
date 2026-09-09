@@ -20,7 +20,7 @@ Node 20+ is enough. There are no npm runtime dependencies.
 
 ## The terminal does not sit still
 
-The v1.3 terminal is built around an event stream rather than a static table.
+The v1.4 terminal is built around a moving event stream rather than a static table. COPYBARA now runs beside the COPY wordmark while the scanner is active.
 
 While the engine is running it continuously writes:
 
@@ -42,7 +42,7 @@ Even during a quiet market the scanner keeps rotating through the current univer
 
 ## COPY WALLETS
 
-The bottom desk shows two different things explicitly:
+The bottom desk is now a dense **10-line mirror desk** in showcase mode and grows from confirmed trader/token pairs in live mode. It shows two different things explicitly:
 
 - **SHADOW** — a local mark of a passing profitable-wallet/token pair. It is analytics only and does not claim a trade was executed.
 - **PAPER** — a paper copy you actually opened with `space`.
@@ -52,7 +52,9 @@ Both are re-marked from refreshed token prices. The terminal shows current PnL, 
 Example:
 
 ```text
-SHADOW @ether_monk      → $CASHCAT   +1.84%  Δ+0.22  ▁▂▃▄▆█
+R-SHDW @ether_monk      → $CASHCAT   +4.18%  Δ+0.22  ▁▂▃▄▆█
+R-SHDW @threem          → $AI        -0.41%  Δ-0.13  ▆▅▄▃▂▁
+R-SHDW @Ppricedin       → $CASHCAT  +13.26%  Δ+0.11  ▁▂▄▅▇█
 PAPER  @DumbCrayonEater → $AI         +0.73%  Δ+0.09  ▁▁▂▄▅█
 ```
 
@@ -65,12 +67,13 @@ The right pane now combines:
 - live event type and age;
 - market cap / liquidity / 24h flow;
 - clickable GMGN / Fomo / explorer links;
-- all five risk walls;
+- COPY-native flow walls (source edge, depth ratio, turnover, momentum band, price mark);
 - first refusal reason;
 - live COPY desk;
 - session counts for newly discovered markets, wallet trades, market moves and scanner passes;
 - provider-refresh countdown;
-- COPYBARA status.
+- hot-market radar + session pulse;
+- animated pixel COPYBARA beside the wordmark.
 
 ## Start it
 
@@ -106,7 +109,7 @@ or:
 copy terminal --demo
 ```
 
-This mode is loudly labeled **REPLAY** in the header. It applies deterministic replay market ticks to the real bootstrap token set so the event stream, wallet mirrors, PnL deltas and sparklines visibly move even when external providers are unavailable. Replay ticks are never labeled as live wallet trades.
+This mode is loudly labeled **REPLAY** in the header. It applies deterministic replay market ticks to the real bootstrap token set, rotates replay shadow-wallet entries, marks up to ten mirror PnLs, emits replay intake / mirror / PnL events, and keeps the right-side radar moving even when external providers are unavailable. Replay events are never labeled as live wallet trades.
 
 ## Raw scrolling mode
 
@@ -144,39 +147,40 @@ FOMO_BEARER_TOKEN=
 
 With wallet activity available, a newly seen Fomo BUY/SELL becomes a real `BUY`/`SELL` event in the terminal and its token address is immediately fed into market enrichment.
 
-## Current paper box
+## COPY FLOW BOX
+
+The terminal no longer gates tokens with the old generic `score + max market cap + min liquidity` trio. v1.4 uses its own copytrade-oriented flow box:
 
 ```text
-0.01 ETH per paper copy
-minimum COPY score      60
-maximum market cap      $250M
-minimum liquidity       $20K
-maximum open positions  3
-session budget          0.05 ETH
-take profit             +80%
-stop loss               -35%
-trailing                25%
-max hold                45 min
+source edge             >= 58 COPY DNA
+market depth            >= 1.00% liquidity / market cap
+turnover                >= 0.45x 24h volume / liquidity
+momentum band           -15% ... +38%
+price mark              required
+
+paper size              0.012 ETH
+maximum open positions  5
+session budget          0.080 ETH
+take profit             +65%
+stop loss               -22%
+trailing                18%
+max hold                32 min
 ```
 
-A green leaderboard entry is discovery, not permission.
+These are demo/default paper rules, not a claim that they are profitable settings. A high COPY score is still displayed, but it is no longer the permission gate.
 
 ```text
-profit wallet
+profit source
     ↓
 wallet event / market discovery
     ↓
-Robinhood token enrichment
-    ↓
-COPY score
-    ↓
-risk walls
+EDGE → DEPTH → TURNOVER → MOMENTUM → PRICE
     ↓
 FIRE / SKIP
     ↓
-shadow mark / PAPER copy
+shadow mirror / PAPER copy
     ↓
-price marks → PnL → exit rule
+live marks → PnL delta → exit rule
 ```
 
 ## Commands
@@ -212,7 +216,7 @@ The status header always distinguishes `LIVE`, `SNAPSHOT`, and `REPLAY`.
 - a `BUY` / `SELL` line comes from wallet activity returned by a configured Fomo read source;
 - `MOVE` comes from a changed market read or is explicitly labeled replay in demo mode;
 - `SCAN` means the local decision engine evaluated a token, not that somebody traded it;
-- `SHADOW` is analytics;
+- `SHADOW` is analytics; in REPLAY it is rendered as `R-SHDW`;
 - `PAPER` is a local paper position;
 - no line is called an executed on-chain position without an execution receipt.
 

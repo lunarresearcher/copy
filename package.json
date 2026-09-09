@@ -1,7 +1,7 @@
 {
   "name": "copy-robinhood-cli",
-  "version": "1.3.0",
-  "description": "COPY \u2014 live Robinhood Chain copytrade terminal with continuously updating token intake, wallet mirrors, PnL marks and paper execution.",
+  "version": "1.4.0",
+  "description": "COPY \u2014 live Robinhood Chain copytrade terminal with animated COPYBARA, live token intake, dense wallet mirrors, PnL marks and paper execution.",
   "type": "module",
   "bin": {
     "copy": "./bin/copy.mjs"

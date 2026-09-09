@@ -1,16 +1,27 @@
-# Strategy
+# COPY strategy / flow box
 
-COPY deliberately separates **discovery** from **permission**.
+COPY v1.4 intentionally does **not** use the old generic score + market-cap + liquidity gate. The terminal keeps COPY score as context, while permission is based on copytrade flow quality.
 
-A profitable Fomo trader is a discovery signal. A copy only receives `FIRE` if the token also clears the local rule box:
+## Discovery walls
 
-1. confirmed Fomo trader / tracked source
-2. COPY score >= 60
-3. market cap <= $250M
-4. liquidity >= $20K
-5. fewer than 3 open paper positions
-6. 0.05 ETH session budget not exhausted
+1. **EDGE** — the confirmed profit source needs COPY DNA >= 58.
+2. **DEPTH** — liquidity / market cap must be >= 1.00%.
+3. **TURN** — 24h volume / liquidity must be >= 0.45x.
+4. **MOMO** — 24h move must stay inside -15% to +38%.
+5. **PRICE** — a current market price is required before a paper copy can open.
 
-Default paper exits: +80% take profit, -35% stop, 25% trailing from peak, 45 minute max hold.
+## Paper box
 
-All values are readable and stored locally in `data/runtime.json` once changed.
+- size: 0.012 ETH
+- max open: 5
+- session budget: 0.080 ETH
+- take profit: +65%
+- stop loss: -22%
+- trailing: 18%
+- max hold: 32 min
+
+These are defaults for the local paper engine and showcase, not a profitability recommendation.
+
+## Mirror desk
+
+`SHADOW` is an analytics mark for a passing source/token pair. `PAPER` is a local paper position. In `--demo` / showcase mode, replay mirrors are explicitly labeled `R-SHDW`; up to ten are rotated and re-marked so the terminal can be recorded without pretending those events are live trades.

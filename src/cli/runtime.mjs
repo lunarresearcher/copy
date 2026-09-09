@@ -17,7 +17,7 @@ export class CopyRuntime{
     this.demo=demo;
     this.seed=null;this.store=null;this.rules=null;
     this.leaderboard=[];this.tokens=[];this.trades=[];this.verified=[];this.candidates=[];
-    this.events=[];this.shadowCopies=[];
+    this.events=[];this.shadowCopies=[];this.demoMirrors=[];this.demoWalletCursor=0;
     this.providers={fomo:'snapshot',trades:'snapshot',dex:'snapshot',rpc:'unknown'};
     this.lastSync=null;this.syncing=false;this.listeners=new Set();
     this.seenTradeIds=new Set();this.knownTokenAddresses=new Set();this.eventSeq=0;this.scanCursor=0;this.demoTickNo=0;
@@ -36,6 +36,7 @@ export class CopyRuntime{
     this.knownTokenAddresses=new Set(this.tokens.map(x=>lower(x.address)).filter(Boolean));
     this.rebuild();
     this.seedEvents();
+    if(this.demo)this.seedDemoMirrors();
     this.refreshShadowCopies();
     return this;
   }
@@ -178,9 +179,9 @@ export class CopyRuntime{
   }
 
   rebuild(){
-    const byHandle=new Map(this.leaderboard.map(x=>[lower(x.handle||x.name),x]));
     const max=Math.max(1,...this.leaderboard.map(x=>Number(x.pnl24h||0)));
     this.hunters=this.leaderboard.slice(0,140).map((x,i)=>({...x,score:walletScore(x,max),rank:x.rank24h||x.rank||i+1}));
+    const byHandle=new Map(this.hunters.map(x=>[lower(x.handle||x.name),x]));
     this.candidates=[];
 
     for(const p of this.verified){
@@ -222,25 +223,73 @@ export class CopyRuntime{
     this.pushEvent('SCAN',{candidate:c,message:`scanner ${passed}/${total} walls · ${c.reasons?.[0]||'ready for copy decision'}`});
   }
 
+  seedDemoMirrors(){
+    const priced=this.tokens.filter(t=>num(t.price));
+    if(!priced.length)return;
+    const ascii=x=>/^[\x20-\x7E]+$/.test(String(x||''));
+    const hunters=this.hunters.filter(h=>ascii(h.handle||h.name)).slice(0,30);
+    const seeds=[3.8,-1.4,7.2,0.9,11.6,-2.1,4.7,1.8,8.4,-0.6];
+    this.demoMirrors=[];
+    for(let i=0;i<Math.min(10,Math.max(8,hunters.length));i++){
+      const token=priced[i%priced.length];
+      const trader=hunters[(i*3+2)%hunters.length]||{name:`shadow_${i+1}`};
+      const initial=seeds[i%seeds.length];
+      const currentPrice=Number(token.price);
+      const entryPrice=currentPrice/(1+initial/100);
+      this.demoMirrors.push({
+        key:`replay:${i}:${lower(token.address)}`,kind:'SHADOW',replay:true,
+        trader:trader.name||trader.handle||`wallet_${i+1}`,handle:trader.handle||trader.name||`wallet_${i+1}`,
+        symbol:token.symbol,address:token.address,entryPrice,currentPrice,pnlPct:initial,deltaPct:0,
+        history:[initial*.20,initial*.42,initial*.66,initial*.82,initial],startedAt:now(),source:'REPLAY'
+      });
+    }
+  }
+
+  rotateDemoMirror(){
+    if(!this.demo||!this.tokens.length||!this.hunters.length)return;
+    const priced=this.tokens.filter(t=>num(t.price));if(!priced.length)return;
+    const idx=this.demoWalletCursor++;
+    const token=priced[(idx*5+this.demoTickNo)%priced.length];
+    const pool=this.hunters.filter(h=>/^[\x20-\x7E]+$/.test(String(h.handle||h.name||'')))||this.hunters;
+    const trader=pool[(idx*7+this.demoTickNo+5)%pool.length];
+    const fresh={
+      key:`replay:new:${this.demoTickNo}:${lower(token.address)}:${lower(trader.handle||trader.name)}`,
+      kind:'SHADOW',replay:true,trader:trader.name||trader.handle||'wallet',handle:trader.handle||trader.name||'wallet',
+      symbol:token.symbol,address:token.address,entryPrice:Number(token.price),currentPrice:Number(token.price),
+      pnlPct:0,deltaPct:0,history:[0],startedAt:now(),source:'REPLAY'
+    };
+    this.demoMirrors.unshift(fresh);this.demoMirrors=this.demoMirrors.slice(0,10);
+    const cand=this.candidates.find(c=>lower(c.token.address)===lower(token.address));
+    this.pushEvent('REPLAY IN',{candidate:cand,message:`shadow @${fresh.handle} entered $${fresh.symbol} · model size ${this.rules.buySizeEth.toFixed(3)} ETH`});
+  }
+
   demoTick(){
     if(!this.demo||!this.tokens.length)return;
     this.demoTickNo++;
-    const targets=this.tokens.filter(t=>num(t.price)).slice(0,4);
+    const targets=this.tokens.filter(t=>num(t.price)).slice(0,5);
     for(let i=0;i<targets.length;i++){
       const t=targets[i];
-      const wave=Math.sin((this.demoTickNo+i*1.7)/2.2)*0.0018 + Math.cos((this.demoTickNo+i)/3.7)*0.0008;
+      const wave=Math.sin((this.demoTickNo+i*1.7)/2.2)*0.0026 + Math.cos((this.demoTickNo+i)/3.7)*0.0011;
       const old=Number(t.price);const next=Math.max(old*0.2,old*(1+wave));
       t.price=next;
       if(num(t.marketCap))t.marketCap=Number(t.marketCap)*(next/old);
-      t.volume24h=Number(t.volume24h||0)+Math.max(40,Math.abs(wave)*Number(t.volume24h||100000)*0.08);
-      t.change24h=Number(t.change24h||0)+wave*100*0.12;
+      t.volume24h=Number(t.volume24h||0)+Math.max(60,Math.abs(wave)*Number(t.volume24h||100000)*0.11);
+      t.change24h=Number(t.change24h||0)+wave*100*0.15;
       t.score=marketTokenScore(t);
     }
     this.rebuild();
+    if(this.demoTickNo%5===0)this.rotateDemoMirror();
     this.refreshShadowCopies();
     const movedToken=targets[this.demoTickNo%Math.max(1,targets.length)];
     const c=movedToken?this.candidates.find(x=>lower(x.token.address)===lower(movedToken.address)):this.candidates[0];
-    if(c)this.pushEvent(this.demoTickNo%5===0?(c.verdict==='FIRE'?'REPLAY BUY':'REPLAY SKIP'):'REPLAY MOVE',{candidate:c,message:this.demoTickNo%5===0?`replay wallet tick · ${c.reasons?.[0]||'paper copy would fire'}`:`replay market tick · $${c.token.symbol} ${Number(c.token.change24h||0)>=0?'+':''}${Number(c.token.change24h||0).toFixed(2)}% 24h`});
+    if(this.demoTickNo%7===0&&c){
+      this.stats.newTokens++;
+      this.pushEvent('REPLAY NEW',{candidate:c,message:`replay intake · $${c.token.symbol} joined the watched universe from a historical market read`});
+    }else if(this.demoTickNo%4===0&&this.shadowCopies.length){
+      const m=this.shadowCopies[this.demoTickNo%this.shadowCopies.length];
+      const mc=this.candidates.find(x=>lower(x.token.address)===lower(m.address));
+      if(mc)this.pushEvent('REPLAY PNL',{candidate:mc,message:`@${m.handle} mirror $${m.symbol} ${m.pnlPct>=0?'+':''}${m.pnlPct.toFixed(2)}% · Δ ${m.deltaPct>=0?'+':''}${m.deltaPct.toFixed(2)}%`});
+    }else if(c)this.pushEvent('REPLAY MOVE',{candidate:c,message:`replay market tick · $${c.token.symbol} ${Number(c.token.change24h||0)>=0?'+':''}${Number(c.token.change24h||0).toFixed(2)}% 24h · turnover ${(Number(c.token.volume24h||0)/Math.max(1,Number(c.token.liquidity||0))).toFixed(2)}x`});
   }
 
   refreshShadowCopies(){
@@ -255,10 +304,23 @@ export class CopyRuntime{
       const entryPrice=prev?.entryPrice||currentPrice;
       const pnlPct=entryPrice?((currentPrice/entryPrice)-1)*100:0;
       const hist=[...(prev?.history||[]),pnlPct].slice(-18);
-      source.push({key,kind:'SHADOW',trader:c.trader.name||c.trader.handle||'wallet',handle:c.trader.handle||'',symbol:c.token.symbol,address:c.token.address,entryPrice,currentPrice,pnlPct,deltaPct:pnlPct-Number(prev?.pnlPct||0),history:hist,startedAt:prev?.startedAt||now(),source:c.kind});
-      if(source.length>=4)break;
+      source.push({key,kind:'SHADOW',trader:c.trader.name||c.trader.handle||'wallet',handle:c.trader.handle||'',symbol:c.token.symbol,address:c.token.address,entryPrice,currentPrice,pnlPct,deltaPct:pnlPct-Number(prev?.pnlPct||0),history:hist,startedAt:prev?.startedAt||now(),source:c.kind,replay:this.demo});
+      if(source.length>=8)break;
     }
-    this.shadowCopies=source;
+
+    if(this.demo){
+      const next=[];
+      for(const m of this.demoMirrors){
+        const t=this.tokens.find(x=>lower(x.address)===lower(m.address));if(!t||!num(t.price))continue;
+        const currentPrice=Number(t.price),prevPct=Number(m.pnlPct||0);
+        m.currentPrice=currentPrice;m.pnlPct=m.entryPrice?((currentPrice/m.entryPrice)-1)*100:0;
+        m.deltaPct=m.pnlPct-prevPct;m.history=[...(m.history||[]),m.pnlPct].slice(-18);
+        next.push(m);
+      }
+      this.demoMirrors=next;
+      for(const m of this.demoMirrors){if(!source.some(x=>x.key===m.key))source.push({...m});if(source.length>=10)break;}
+    }
+    this.shadowCopies=source.slice(0,10);
   }
 
   async setRules(patch){this.rules=normalizeRules({...this.rules,...patch});this.store.rules=this.rules;await saveStore(this.store);this.rebuild();this.refreshShadowCopies();this.emit({type:'rules'});return this.rules}
