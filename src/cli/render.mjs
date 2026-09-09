@@ -76,6 +76,61 @@ function mirrorLines(rt,max=8){
   });
 }
 
+
+function marketTapeLines(rt,max=6){
+  const rows=(rt.tokens||[]).filter(t=>Number(t.price)>0).map(t=>{
+    const depth=Number(t.marketCap)>0?Number(t.liquidity||0)/Number(t.marketCap)*100:0;
+    const turn=Number(t.liquidity)>0?Number(t.volume24h||0)/Number(t.liquidity):0;
+    const mom=Number(t.change24h||0);
+    const heat=turn*18+Math.min(depth,5)*8-Math.abs(mom-6)*.2;
+    return{t,depth,turn,mom,heat};
+  }).sort((a,b)=>b.heat-a.heat).slice(0,max);
+  if(!rows.length)return[muted('waiting for priced RH markets')];
+  return rows.map(x=>{
+    const sym=c(A.bold,'$'+String(x.t.symbol||'?').padEnd(8).slice(0,8));
+    const mv=x.mom>=0?c(A.brightGreen,`+${x.mom.toFixed(1)}%`):danger(`${x.mom.toFixed(1)}%`);
+    return `${sym} ${mv.padStart(8)}  ${soft('d')} ${x.depth.toFixed(1).padStart(4)}%  ${soft('t')} ${x.turn.toFixed(2).padStart(5)}x  ${soft('liq')} ${usd(x.t.liquidity)}`;
+  });
+}
+
+function positionLines(rt,max=4){
+  const rows=(rt.store?.positions||[]).slice(0,max);
+  if(!rows.length)return[muted('no open paper positions · SPACE on FIRE to open')];
+  return rows.map(p=>{
+    const v=Number(p.pnlPct||0);
+    const pp=v>=0?c(A.brightGreen,`${v>=0?'+':''}${v.toFixed(2)}%`):danger(`${v.toFixed(2)}%`);
+    return `${c(A.brightGreen,'OPEN')} ${c(A.bold,'$'+String(p.symbol||'?').padEnd(8).slice(0,8))} ${pp.padStart(8)}  ${soft('@'+trunc(p.trader||'wallet',13))}`;
+  });
+}
+
+function exitLines(rt,max=3){
+  const rows=(rt.store?.closed||[]).slice(0,max);
+  if(!rows.length)return[muted('no exits yet · TP / SL / trail / clock armed')];
+  return rows.map(p=>{
+    const v=Number(p.pnlPct||0);
+    const pp=v>=0?c(A.brightGreen,`+${v.toFixed(2)}%`):danger(`${v.toFixed(2)}%`);
+    return `${soft('CLOSED')} ${c(A.bold,'$'+String(p.symbol||'?').padEnd(8).slice(0,8))} ${pp.padStart(8)}  ${soft(trunc(p.exitReason||'manual',12))}`;
+  });
+}
+
+
+function hunterLines(rt,max=5){
+  const rows=(rt.hunters||[]).slice(0,max);
+  if(!rows.length)return[muted('waiting for profit hunter set')];
+  return rows.map((h,i)=>{
+    const handle='@'+String(h.handle||h.name||'wallet').replace(/^@/,'');
+    const p=Number(h.pnl24h??h.pnl??0);
+    const pp=p>=0?c(A.brightGreen,`+${p.toFixed(1)}%`):danger(`${p.toFixed(1)}%`);
+    return `${soft('#'+String(i+1).padStart(2,'0'))} ${trunc(handle,17).padEnd(17)} ${pp.padStart(9)}  ${soft('DNA')} ${String(Math.round(h.score||0)).padStart(2)}`;
+  });
+}
+
+function recentFlowLines(rt,max=4){
+  const rows=(rt.events||[]).filter(e=>e.candidate?.token).slice(0,max);
+  if(!rows.length)return[muted('waiting for market flow')];
+  return rows.map(e=>`${typeTag(e.type)} ${c(A.bold,'$'+String(e.candidate.token.symbol||'?').padEnd(8).slice(0,8))} ${trunc(e.message||e.candidate.reasons?.[0]||'',34)}`);
+}
+
 function radarLines(rt,max=5){
   const rows=(rt.tokens||[]).filter(t=>Number(t.price)>0).map(t=>{
     const depth=Number(t.marketCap)>0?Number(t.liquidity||0)/Number(t.marketCap)*100:0;
@@ -117,8 +172,8 @@ export function renderTui(rt,state){
   const selectedEvent=events[state.selected]||rt.events?.[0];
   const sel=selectedEvent?.candidate||rt.candidates?.[0];
 
-  const bottomRows=Math.min(18,Math.max(12,H-22));
-  const feedHeight=Math.max(14,H-6-1-1-bottomRows);
+  const bottomRows=Math.min(28,Math.max(16,Math.floor((H-8)*0.42)));
+  const feedHeight=Math.max(16,H-6-1-1-bottomRows);
   const leftRows=[];
   leftRows.push(`${soft(' LIVE EVENT STREAM ')} ${state.filter==='all'?lime('ALL'):state.filter==='fire'?c(A.brightGreen,'FIRE'):danger('SKIP')}  ${soft('wallet entries + market intake + marks + COPY decisions')}`);
   const visibleFeed=Math.max(1,feedHeight-1);
@@ -147,6 +202,16 @@ export function renderTui(rt,state){
     detail.push('');
     detail.push(`${soft('session')} +${st.stats.newTokens} intake · ${st.stats.tradeEvents} wallet events · ${st.stats.marketMoves} moves · ${st.stats.scans} scans`);
     detail.push(`${soft('pulse')} ${meter((Date.now()/1000)%10,0,10,10)}  ${soft('next sync')} ${nextSync}s`);
+    detail.push('');
+    detail.push(soft('SOURCE PULSE'));
+    detail.push(`${soft('fomo')} ${st.providers.fomo}   ${soft('wallet trades')} ${st.providers.trades}   ${soft('dex')} ${st.providers.dex}   ${soft('rpc')} ${st.providers.rpc}`);
+    detail.push(`${soft('universe')} ${c(A.white,st.tokens)} markets   ${soft('hunters')} ${c(A.white,st.hunters)}   ${soft('mirrors')} ${c(A.white,st.shadowCopies)}`);
+    detail.push('');
+    detail.push(soft('TOP PROFIT SOURCES'));
+    detail.push(...hunterLines(rt,5));
+    detail.push('');
+    detail.push(soft('RECENT COPY FLOW'));
+    detail.push(...recentFlowLines(rt,4));
   }else detail.push(muted('waiting for token candidates'));
 
   const infoBox=box('selected + market radar',right-1,detail).slice(0,feedHeight);
@@ -158,21 +223,32 @@ export function renderTui(rt,state){
   const recent=rt.events?.slice(0,3)||[];
   const bottomLeft=[`${soft(' COPY WALLETS / MIRROR DESK ')} ${st.mode==='REPLAY'?amber(`${st.shadowCopies} rotating replay mirrors`):muted(`${st.shadowCopies} live-confirmed mirrors + paper`)}`,...mirrors];
   while(bottomLeft.length<bottomRows)bottomLeft.push('');
-  const hot=radarLines(rt,3);
+  const hot=radarLines(rt,4);
+  const tape=marketTapeLines(rt,6);
+  const open=positionLines(rt,4);
+  const exits=exitLines(rt,3);
   const bottomRight=[
-    `${soft('FLOW')} ${st.mode==='REPLAY'?amber('REPLAY DATA'):st.mode==='LIVE'?c(A.brightGreen,'LIVE READS'):muted('SNAPSHOT FALLBACK')}`,
+    `${soft(' FLOW / SESSION ')} ${st.mode==='REPLAY'?amber('REPLAY DATA'):st.mode==='LIVE'?c(A.brightGreen,'LIVE READS'):muted('SNAPSHOT FALLBACK')}`,
     `${soft('latest')} ${recent[0]?`${typeTag(recent[0].type)} ${trunc(recent[0].message,Math.max(10,right-18))}`:muted('waiting')}`,
     `${soft('intake')} ${st.mode==='REPLAY'?lime(`continuous · ${st.tokens} markets and growing`):muted(`${st.tokens} discovered RH markets`)}`,
-    `${soft('mirrors')} ${c(A.white,st.shadowCopies)} wallets · pairs rotate · PnL marks fast`,
-    `${soft('queue')} ${st.positions}/${rules.maxPositions} paper · ${(rules.sessionBudgetEth-Number(st.spentEth)).toFixed(3)} ETH left`,
-    `${soft('HOT NOW')} ${hot[0]||muted('waiting')}`,
-    `${soft('NEXT')}    ${hot[1]||muted('waiting')}`,
-    `${soft('WATCH')}   ${hot[2]||muted('waiting')}`,
-    `${soft('keys')} ↑↓ event · f filter · space paper · c track`,
-    `${soft('keys')} p pause · r refresh · q quit`,
-    state.message?amber(trunc(state.message,right-2)):muted('COPYBARA keeps scanning between provider refreshes'),
-    `${soft('box')} 0.012 ETH · 5 max · 0.080 session · TP +65 · SL -22`,
-    soft('SHADOW is analytics. PAPER is local. REPLAY is labeled.')
+    `${soft('wallets')} ${c(A.white,st.shadowCopies)} mirrors · ${soft('flow')} ${c(A.white,st.trades)} · ${soft('events')} ${c(A.white,st.totalEvents||st.events)}`,
+    `${soft('budget')} ${Number(st.spentEth).toFixed(3)}/${rules.sessionBudgetEth.toFixed(3)} ETH · ${soft('slots')} ${st.positions}/${rules.maxPositions}`,
+    '',
+    soft(' HOT MARKET RADAR '),
+    ...hot,
+    '',
+    soft(' MARKET TAPE '),
+    ...tape,
+    '',
+    soft(' PAPER POSITIONS '),
+    ...open,
+    soft(' RECENT EXITS '),
+    ...exits,
+    '',
+    `${soft(' SOURCES ')} fomo ${st.providers.fomo} · trades ${st.providers.trades} · dex ${st.providers.dex} · rpc ${st.providers.rpc}`,
+    `${soft(' scanner ')} ${lime(scanner)}  ${soft('sync')} ${nextSync}s  ${soft('moves')} ${st.stats.marketMoves}  ${soft('scans')} ${st.stats.scans}`,
+    `${soft(' keys ')} ↑↓ event · f filter · space paper · c track · p pause · r refresh · q quit`,
+    state.message?amber(trunc(state.message,right-2)):muted('COPYBARA keeps scanning · pairs rotate · marks keep moving')
   ];
   for(let i=0;i<bottomRows;i++)lines.push(pad(trunc(bottomLeft[i]||'',left-1),left-1)+soft('│')+trunc(bottomRight[i]||'',right-1));
 

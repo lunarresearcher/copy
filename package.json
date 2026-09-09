@@ -1,7 +1,7 @@
 {
   "name": "copy-robinhood-cli",
-  "version": "1.6.0",
-  "description": "COPY — CLI-first Robinhood Chain smart-wallet terminal with explainable flow walls, endless market intake, rotating copy-wallet mirrors, paper execution and explicit replay mode.",
+  "version": "1.8.0",
+  "description": "CLI-first copytrade terminal for Robinhood Chain with profit hunters, fresh RH markets, COPY wallets, paper positions, and a native execution queue.",
   "type": "module",
   "bin": {
     "copy": "./bin/copy.mjs"
@@ -19,7 +19,8 @@
     "web": "node server.mjs",
     "test": "node scripts/smoke-test.mjs && node scripts/cli-test.mjs",
     "preview:terminal": "node scripts/generate-terminal-preview.mjs",
-    "showcase": "node bin/copy.mjs terminal --demo"
+    "showcase": "node bin/copy.mjs terminal --demo",
+    "github:setup": "bash scripts/github-setup.sh"
   },
   "keywords": [
     "robinhood-chain",

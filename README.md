@@ -30,11 +30,13 @@
 
 ---
 
-COPY is a working local-first terminal for the Robinhood Chain copytrade meta.
+## About
 
-It pulls profitable-wallet context, keeps a growing Robinhood token universe, scores every candidate through COPY-native flow walls, prints `FIRE / SKIP` with reasons, rotates COPY wallets, runs paper positions, and keeps a native queue ready for execution wiring.
+**COPY is a working CLI-first copytrade terminal for Robinhood Chain.**
 
-The terminal is the product. The web page is just a wrapper.
+It tracks profitable traders, keeps fresh Robinhood markets flowing into a growing session universe, evaluates every setup through COPY-native flow walls, and keeps COPY WALLETS, paper positions, live marks, and the native execution queue moving from one terminal.
+
+The terminal is the product. The web app is a lightweight wrapper around the same COPY data and execution stack.
 
 ![COPY terminal](./assets/terminal.png)
 
