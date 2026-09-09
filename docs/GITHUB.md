@@ -1,69 +1,35 @@
-# GitHub page setup
-
-The README is written to be the repository front page. A few GitHub-side settings finish the presentation.
+# GitHub profile setup
 
 ## About
 
-Suggested description:
+**CLI-first copytrade terminal for Robinhood Chain. Tracks profit hunters, fresh RH tokens, COPY wallets, paper positions, and a native queue in one moving terminal.**
 
-> CLI-first Robinhood Chain smart-wallet terminal — explainable flow walls, endless market intake, rotating copy-wallet mirrors, paper execution, explicit replay mode.
+## Website
 
-Website: add the public COPY wrapper URL when it exists. Until then, leave the field empty rather than pointing at an unrelated page.
+If you want a single project link, point it to your repository or demo page.
 
 ## Topics
 
-Suggested topics:
-
 ```text
-robinhood-chain
 copytrade
-trading-terminal
-smart-money
-fomo
-crypto
-cli
+robinhood-chain
 terminal
+cli
+tui
+crypto
+trading-bot
+fomo
+gmgn
 nodejs
-paper-trading
+capybara
 ```
 
-## Social preview
+## Recommended repo images
 
-Use `assets/terminal.png` as the repository social preview until a dedicated 1280×640 card exists. It immediately shows that COPY is a terminal product instead of a generic bot library.
+- Social preview / banner: `assets/copy-banner.png`
+- Avatar / profile image: `assets/copybara-avatar.png`
+- README screenshot: `assets/terminal.png`
 
-## Release naming
+## Suggested pinned sentence
 
-Keep release names product-first instead of internal build chatter:
-
-```text
-COPY 1.6 — endless terminal
-COPY 1.7 — live wallet intake
-COPY 1.8 — executor adapter
-```
-
-Avoid putting `v15 fixed`, `final-final`, or implementation notes in the README title. Put build history in releases / commits; keep the front page evergreen.
-
-## Pinned files
-
-The front-page reading path should stay:
-
-```text
-README
-  → docs/TERMINAL.md
-  → docs/COMMANDS.md
-  → docs/STRATEGY.md
-  → docs/ARCHITECTURE.md
-  → docs/SAFETY.md
-```
-
-## Before a public push
-
-```bash
-npm test
-git status
-git add .
-git commit -m "polish COPY docs and GitHub presentation"
-git push
-```
-
-Make sure `.env`, `data/runtime.json`, and `data/cache.json` are not staged.
+> COPY is a working local-first copytrade terminal for Robinhood Chain. It tracks profit hunters, grows the token universe, scores every setup, and keeps COPY wallets, paper positions, and a native queue moving from one terminal.
