@@ -1,6 +1,6 @@
 {
   "name": "copy-robinhood-cli",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Working CLI-first copytrade terminal for Robinhood Chain with live token discovery, profit hunters, COPY wallets, paper positions, and a native execution queue.",
   "type": "module",
   "bin": {
@@ -20,7 +20,8 @@
     "test": "node scripts/smoke-test.mjs && node scripts/cli-test.mjs",
     "preview:terminal": "node scripts/generate-terminal-preview.mjs",
     "showcase": "node bin/copy.mjs terminal --demo",
-    "github:setup": "bash scripts/github-setup.sh"
+    "github:setup": "bash scripts/github-setup.sh",
+    "github:clean": "node scripts/github-clean.mjs"
   },
   "keywords": [
     "robinhood-chain",

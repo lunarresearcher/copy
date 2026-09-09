@@ -1,0 +1,11 @@
+# COPY // GitHub Linguist
+# Generated previews must never dominate repository language stats.
+cli-preview.html linguist-generated=true
+preview-standalone.html linguist-generated=true
+terminal-preview-standalone.html linguist-generated=true
+**/*-standalone.html linguist-generated=true
+public/bootstrap-state.js linguist-generated=true
+
+# Binary brand / terminal assets.
+*.png binary
+*.webp binary

@@ -6,3 +6,7 @@ npm-debug.log*
 
 data/cache.json
 data/runtime.json
+cli-preview.html
+preview-standalone.html
+terminal-preview-standalone.html
+*-standalone.html

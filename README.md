@@ -90,6 +90,25 @@ npm install -g .
 copy doctor --probe
 ```
 
+## Upgrading an older checkout
+
+Older COPY builds generated multi-megabyte standalone HTML previews. If you updated the repository in-place, Git may still be tracking those old files and GitHub can incorrectly show the project as mostly HTML.
+
+Run this once:
+
+```bash
+npm run github:clean
+```
+
+It removes/untracks generated standalone previews, restores the Linguist rules, updates `.gitignore`, stages the cleanup, and prints a local source-size breakdown. Then:
+
+```bash
+git commit -m "clean GitHub language stats"
+git push
+```
+
+GitHub will recalculate the language bar after the commit is processed.
+
 ## Sixty seconds
 
 ```bash
