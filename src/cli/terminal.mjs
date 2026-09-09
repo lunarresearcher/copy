@@ -1,9 +1,50 @@
-import {altOn,altOff,hideCursor,showCursor,home,clear,A,c,lime,danger} from './ansi.mjs';
+import {altOn,altOff,hideCursor,showCursor,home,clear} from './ansi.mjs';
 import {renderTui} from './render.mjs';
-export async function terminal(rt,{demo=false}={}){const state={selected:0,filter:'all',engine:false};await rt.init();await rt.sync();let stopped=false,renderTimer,syncTimer,markTimer;const render=()=>{if(stopped)return;process.stdout.write(home+renderTui(rt,state)+'\x1b[J')};const cleanup=()=>{if(stopped)return;stopped=true;clearInterval(renderTimer);clearInterval(syncTimer);clearInterval(markTimer);try{if(process.stdin.isTTY)process.stdin.setRawMode(false)}catch{}process.stdin.pause();process.stdout.write(showCursor+altOff+'\n')};
+
+export async function terminal(rt,{demo=false}={}){
+  const syncEvery=demo?8000:12000;
+  const state={selected:0,filter:'all',engine:true,message:'',nextSyncAt:Date.now()+syncEvery};
+  await rt.init();
+  await rt.sync();
+  state.nextSyncAt=Date.now()+syncEvery;
+
+  let stopped=false,renderTimer,syncTimer,markTimer,pulseTimer,demoTimer,messageTimer;
+  const render=()=>{if(stopped)return;process.stdout.write(home+renderTui(rt,state)+'\x1b[J')};
+  const flash=msg=>{state.message=msg;clearTimeout(messageTimer);messageTimer=setTimeout(()=>{state.message=''},4000)};
+  const cleanup=()=>{
+    if(stopped)return;stopped=true;
+    clearInterval(renderTimer);clearInterval(syncTimer);clearInterval(markTimer);clearInterval(pulseTimer);clearInterval(demoTimer);clearTimeout(messageTimer);
+    try{if(process.stdin.isTTY)process.stdin.setRawMode(false)}catch{}
+    process.stdin.pause();process.stdout.write(showCursor+altOff+'\n');
+  };
+
   if(!process.stdout.isTTY||!process.stdin.isTTY){console.log('COPY terminal needs a TTY. Try: npm run hunt');return}
-  process.stdout.write(altOn+hideCursor+clear);process.stdin.setRawMode(true);process.stdin.resume();process.stdin.setEncoding('utf8');
-  process.stdin.on('data',async key=>{if(key==='q'||key==='\u0003'){cleanup();return}if(key==='p'){state.engine=!state.engine;render();return}if(key==='f'){state.filter=state.filter==='all'?'fire':state.filter==='fire'?'skip':'all';state.selected=0;render();return}if(key==='r'){await rt.sync();render();return}if(key==='\x1b[A'||key==='k'){state.selected=Math.max(0,state.selected-1);render();return}if(key==='\x1b[B'||key==='j'){state.selected++;render();return}const list=rt.candidates.filter(x=>state.filter==='fire'?x.verdict==='FIRE':state.filter==='skip'?x.verdict==='SKIP':true);const cand=list[state.selected]||list[0];if(key==='c'&&cand){await rt.toggleTrack(cand);render();return}if(key===' '&&cand){const res=await rt.openPaper(cand);if(!res.ok){state.message=res.reasons.join(', ')}render();return}});
-  renderTimer=setInterval(render,1000);syncTimer=setInterval(async()=>{if(state.engine||!demo){await rt.sync();render()}},demo?8000:15000);markTimer=setInterval(async()=>{await rt.markPositions();render()},5000);render();
-  await new Promise(resolve=>{const poll=setInterval(()=>{if(stopped){clearInterval(poll);resolve()}},100)})
+  process.stdout.write(altOn+hideCursor+clear);
+  process.stdin.setRawMode(true);process.stdin.resume();process.stdin.setEncoding('utf8');
+
+  const currentEvent=()=>{
+    const events=(rt.events||[]).filter(e=>state.filter==='all'?true:e.candidate&&(state.filter==='fire'?e.candidate.verdict==='FIRE':e.candidate.verdict==='SKIP'));
+    return events[state.selected]||events[0]||null;
+  };
+
+  process.stdin.on('data',async key=>{
+    if(key==='q'||key==='\u0003'){cleanup();return}
+    if(key==='p'){state.engine=!state.engine;flash(state.engine?'engine resumed':'engine paused');render();return}
+    if(key==='f'){state.filter=state.filter==='all'?'fire':state.filter==='fire'?'skip':'all';state.selected=0;flash(`filter ${state.filter.toUpperCase()}`);render();return}
+    if(key==='r'){flash('refreshing providers…');await rt.sync();state.nextSyncAt=Date.now()+syncEvery;render();return}
+    if(key==='\x1b[A'||key==='k'){state.selected=Math.max(0,state.selected-1);render();return}
+    if(key==='\x1b[B'||key==='j'){state.selected++;render();return}
+    const event=currentEvent();const cand=event?.candidate||rt.candidates?.[0];
+    if(key==='c'&&cand){const added=await rt.toggleTrack(cand);flash(added?'source added to COPY list':'source removed from COPY list');render();return}
+    if(key===' '&&cand){const res=await rt.openPaper(cand);flash(res.ok?`paper copy opened: $${cand.token.symbol}`:res.reasons.join(' · '));render();return}
+  });
+
+  renderTimer=setInterval(render,250);
+  pulseTimer=setInterval(()=>{if(state.engine){rt.heartbeat();render()}},2200);
+  syncTimer=setInterval(async()=>{if(state.engine||!demo){await rt.sync();state.nextSyncAt=Date.now()+syncEvery;render()}},syncEvery);
+  markTimer=setInterval(async()=>{if(state.engine){await rt.markPositions();rt.refreshShadowCopies();render()}},1800);
+  if(demo)demoTimer=setInterval(()=>{if(state.engine){rt.demoTick();render()}},1400);
+  render();
+
+  await new Promise(resolve=>{const poll=setInterval(()=>{if(stopped){clearInterval(poll);resolve()}},100)});
 }

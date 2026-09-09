@@ -1,12 +1,10 @@
 # COPY
 
-> **A local copytrade terminal for Robinhood Chain. Fomo finds the wallet. COPY decides whether the move is allowed.**
+> **A live-first Robinhood Chain copytrade terminal. Fomo finds the wallet. COPY keeps scanning, scores the token, explains the refusal, and tracks the paper mirror.**
 
 ![COPY terminal](./assets/terminal.png)
 
-COPY is CLI-first. The website is only a wrapper.
-
-The main thing you run is this:
+COPY is CLI-first. The website is only a wrapper around the same data/services.
 
 ```bash
 git clone <your-repo-url>
@@ -16,54 +14,137 @@ cp .env.example .env
 npm start
 ```
 
-`npm start` opens the full-screen **COPY // COPYBARA terminal** in your terminal — not a browser.
+`npm start` opens the full-screen **COPY // COPYBARA terminal** directly in your terminal.
 
-No npm runtime dependencies are required. Node 20+ is enough.
+Node 20+ is enough. There are no npm runtime dependencies.
 
-## 60 seconds
+## The terminal does not sit still
 
-```bash
-npm run doctor          # Fomo / Robinhood / DEX health
-npm start               # interactive two-pane terminal
-npm run hunt            # raw newest-first decision feed
-npm run paper           # dry-run copy engine + position exits
-npm run web             # optional website wrapper on localhost:8787
-```
+The v1.3 terminal is built around an event stream rather than a static table.
 
-Install globally if you want the binary:
-
-```bash
-npm install -g .
-copy terminal
-copy hunt --fire-only
-copy trader ether_monk
-copy scan CASHCAT
-copy paper --for 300
-```
-
-Windows checkout includes `start-terminal.cmd`, `start-hunt.cmd`, and `start-paper.cmd` — double click and go.
-
-## What the terminal does
-
-The left side is a newest-first decision stream. Every line has the token, COPY score, profit hunter, market box and the exact first wall that refused it.
-
-The right side is the selected read: trader, token, market cap, liquidity, 24h flow, contract, links, and every refusal reason.
-
-Keyboard:
+While the engine is running it continuously writes:
 
 ```text
-p        start / pause the engine
-f        ALL → FIRE → SKIP filter
-↑ / ↓    move through candidates
-space    open a passing candidate as a paper position
-c        track / untrack the selected source
-r        force provider refresh
+NEW      new Robinhood market discovered
+BUY      confirmed Fomo wallet buy read
+SELL     confirmed Fomo wallet sell read
+MOVE     market price / volume changed on refresh
+SCAN     COPYBARA re-evaluated one token against the walls
+COPY     a paper copy was opened
+PNL      an open paper copy received a new market mark
+EXIT     TP / SL / trailing / clock / manual exit
+SYNC     provider refresh completed
+```
+
+New token addresses are merged into the session instead of replacing the old list. The intake can come from Fomo wallet activity, Fomo trending data when configured, and Robinhood markets discovered by DEX data.
+
+Even during a quiet market the scanner keeps rotating through the current universe and printing its decision. It never invents a live trade just to make the screen move.
+
+## COPY WALLETS
+
+The bottom desk shows two different things explicitly:
+
+- **SHADOW** — a local mark of a passing profitable-wallet/token pair. It is analytics only and does not claim a trade was executed.
+- **PAPER** — a paper copy you actually opened with `space`.
+
+Both are re-marked from refreshed token prices. The terminal shows current PnL, the change since the previous mark, and a tiny session sparkline.
+
+Example:
+
+```text
+SHADOW @ether_monk      → $CASHCAT   +1.84%  Δ+0.22  ▁▂▃▄▆█
+PAPER  @DumbCrayonEater → $AI         +0.73%  Δ+0.09  ▁▁▂▄▅█
+```
+
+## Right side
+
+The right pane now combines:
+
+- selected token + trader read;
+- COPY score;
+- live event type and age;
+- market cap / liquidity / 24h flow;
+- clickable GMGN / Fomo / explorer links;
+- all five risk walls;
+- first refusal reason;
+- live COPY desk;
+- session counts for newly discovered markets, wallet trades, market moves and scanner passes;
+- provider-refresh countdown;
+- COPYBARA status.
+
+## Start it
+
+```bash
+npm start
+```
+
+Useful keys:
+
+```text
+↑ / ↓    move through the live event stream
+f        ALL → FIRE → SKIP
+space    open selected passing signal as a PAPER copy
+c        track / untrack selected source
+p        pause / resume scanner
+r        refresh providers now
 q        quit
 ```
 
-Token links are OSC-8 hyperlinks, so `gmgn`, `fomo` and `explorer` are Ctrl+clickable in Windows Terminal, iTerm2, kitty and VS Code.
+The engine starts **running** by default.
 
-## The walls
+## Showcase / recording mode
+
+For a video, screenshot, demo call, or README capture:
+
+```bash
+npm run showcase
+```
+
+or:
+
+```bash
+copy terminal --demo
+```
+
+This mode is loudly labeled **REPLAY** in the header. It applies deterministic replay market ticks to the real bootstrap token set so the event stream, wallet mirrors, PnL deltas and sparklines visibly move even when external providers are unavailable. Replay ticks are never labeled as live wallet trades.
+
+## Raw scrolling mode
+
+If you want the wall-of-text terminal look:
+
+```bash
+npm run hunt
+```
+
+It now prints the same ongoing event stream instead of dumping one static candidate list and waiting.
+
+```bash
+copy hunt --fire-only
+copy hunt --for 300
+copy hunt --json
+```
+
+## Live inputs
+
+Without credentials COPY still has:
+
+- last-known-good Fomo leaderboard bootstrap;
+- public Fomo leaderboard refresh;
+- keyless DEX discovery / prices / liquidity / volume;
+- Robinhood Chain RPC health;
+- scanner pulses and local paper bookkeeping.
+
+For richer wallet-level activity configure one of the optional read paths in `.env`:
+
+```bash
+REPLYNODES_API_KEY=
+# or
+FOMO_BEARER_TOKEN=
+```
+
+With wallet activity available, a newly seen Fomo BUY/SELL becomes a real `BUY`/`SELL` event in the terminal and its token address is immediately fed into market enrichment.
+
+## Current paper box
 
 ```text
 0.01 ETH per paper copy
@@ -72,88 +153,83 @@ maximum market cap      $250M
 minimum liquidity       $20K
 maximum open positions  3
 session budget          0.05 ETH
-TP                      +80%
-SL                      -35%
+take profit             +80%
+stop loss               -35%
 trailing                25%
 max hold                45 min
 ```
 
-A green Fomo leaderboard entry is **not** permission to copy it. Discovery is one layer; permission is another.
+A green leaderboard entry is discovery, not permission.
 
-## Data
-
-- Fomo leaderboard / trader discovery
-- optional Fomo direct session or read-only gateway for trade activity
-- real Robinhood token markets via DEX data
-- Robinhood Chain RPC health / chain id 4663
-- real token deep links to GMGN, Fomo and Blockscout
-- last-known-good bootstrap data so the terminal still opens when a provider is temporarily unavailable
-
-The header tells you whether the source is `LIVE`, `SNAPSHOT`, `REPLAY`, or degraded. A snapshot is never presented as a live trade.
+```text
+profit wallet
+    ↓
+wallet event / market discovery
+    ↓
+Robinhood token enrichment
+    ↓
+COPY score
+    ↓
+risk walls
+    ↓
+FIRE / SKIP
+    ↓
+shadow mark / PAPER copy
+    ↓
+price marks → PnL → exit rule
+```
 
 ## Commands
 
-See [`docs/COMMANDS.md`](docs/COMMANDS.md).
+```bash
+npm run doctor
+npm start
+npm run hunt
+npm run paper
+npm run showcase
+npm run web
+```
 
-## Why the repo is structured like this
+Or install the local binary:
+
+```bash
+npm install -g .
+copy terminal
+copy hunt --fire-only
+copy trader ether_monk
+copy scan CASHCAT
+copy positions
+copy rules
+copy doctor --probe
+```
+
+See [`docs/COMMANDS.md`](docs/COMMANDS.md), [`docs/STRATEGY.md`](docs/STRATEGY.md), and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Data honesty
+
+The status header always distinguishes `LIVE`, `SNAPSHOT`, and `REPLAY`.
+
+- a `BUY` / `SELL` line comes from wallet activity returned by a configured Fomo read source;
+- `MOVE` comes from a changed market read or is explicitly labeled replay in demo mode;
+- `SCAN` means the local decision engine evaluated a token, not that somebody traded it;
+- `SHADOW` is analytics;
+- `PAPER` is a local paper position;
+- no line is called an executed on-chain position without an execution receipt.
+
+## Project layout
 
 ```text
 bin/copy.mjs                CLI entrypoint
-src/cli/                    terminal renderer, rules, paper engine
+src/cli/runtime.mjs         live intake + event stream + paper marks
+src/cli/render.mjs          full-screen TUI
+src/cli/terminal.mjs        keyboard + timers
 src/providers/              Fomo / Robinhood / DEX readers
 src/services/               scoring + shared state
 public/                     optional web wrapper
 data/seed.json              last-known-good bootstrap
-contracts/CopyRegistry.sol  optional on-chain watch/rule registry
+contracts/CopyRegistry.sol  optional on-chain rules registry
 docs/                       commands, strategy, architecture, safety
 ```
-
-## X / launch copy
-
-> **MY COPY BOT DOESN'T COPY A WALLET JUST BECAUSE IT'S GREEN. IT MAKES THE TRADE PASS THE BOX FIRST. HERE IS THE EXACT SETUP.**
->
-> Most copy bots do one stupid thing:
->
-> `wallet buys → you buy`
->
-> COPY does not.
->
-> Fomo finds the profitable trader. Robinhood gives the market. Then COPY asks whether the move is actually allowed.
->
-> Five walls in the order I built them 👇
->
-> 1. profitable Fomo trader / wallet I explicitly track  
-> 2. COPY score has to clear 60  
-> 3. market cap ≤ $250M and liquidity ≥ $20K  
-> 4. three open positions means there is no fourth  
-> 5. 0.05 ETH session budget is gone → the terminal stops firing
->
-> My current paper box:
->
-> `0.01 ETH per copy`  
-> `3 open positions max`  
-> `0.05 ETH per session`  
-> `take profit +80%`  
-> `stop -35%`  
-> `trailing 25%`  
-> `out after 45 min`
->
-> The part I care about is not the green PnL number. It is the line that tells me **why COPY refused the trade**.
->
-> `Fomo hunter → RH token → score → walls → FIRE / SKIP → paper position → exit log`
->
-> The capybara is the risk manager.
->
-> repo ↓  
-> `github.com/<you>/copy`
->
-> Post your rules under this. I want to see where they leak.
-
-## Inspiration
-
-The terminal interaction is inspired by local-first trading CLIs that make their decision process visible instead of hiding it behind a glossy button: line feeds, readable refusal reasons, local rules, dry-run first, and a browser board only as a secondary view.
-
-COPY applies that pattern to **Fomo smart-money discovery and Robinhood Chain copytrade**.
 
 ## Test
 

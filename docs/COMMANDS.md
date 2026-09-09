@@ -1,19 +1,88 @@
 # Commands
 
-`copy terminal` — the main product. Full-screen, two-pane, keyboard-driven terminal.
+## Main terminal
 
-`copy hunt` — raw newest-first line feed, useful for screenshots, piping, tmux and split panes.
+```bash
+copy terminal
+```
 
-`copy paper` — dry-run auto-copy loop. Candidates that pass the walls become paper positions. Positions are marked and closed by TP / SL / trail / clock.
+Starts the full-screen live event terminal. The scanner starts running immediately.
 
-`copy trader <handle>` — Fomo profit hunter read.
+```text
+↑ / ↓    select event
+f        ALL / FIRE / SKIP
+space    open a passing event as PAPER copy
+c        track selected source
+p        pause / resume scanner
+r        provider refresh
+q        quit
+```
 
-`copy scan <symbol|address>` — Robinhood token market read and GMGN/Fomo/Blockscout links.
+## Showcase / replay
 
-`copy positions` — open and recently closed paper positions.
+```bash
+copy terminal --demo
+# or
+npm run showcase
+```
 
-`copy rules` — current walls.
+Uses the bootstrap Robinhood token set and deterministic replay ticks so the UI can be demonstrated offline. The terminal header says `REPLAY` and replay wallet ticks are labeled `REPLAY BUY` / `REPLAY SKIP`.
 
-`copy doctor --probe` — Node, Fomo, DEX and Robinhood RPC health.
+## Hunt
 
-`copy web` — optional browser wrapper; CLI remains the primary product.
+```bash
+copy hunt
+copy hunt --fire-only
+copy hunt --for 300
+copy hunt --json
+```
+
+A scrolling version of the same ongoing stream. Scanner pulses keep printing between provider refreshes.
+
+## Paper engine
+
+```bash
+copy paper
+copy paper --for 300
+```
+
+Runs the local dry-run copy engine and position marks.
+
+## Read one token
+
+```bash
+copy scan CASHCAT
+copy scan 0x...
+```
+
+## Read one profit hunter
+
+```bash
+copy trader ether_monk
+```
+
+## Positions
+
+```bash
+copy positions
+```
+
+Shows open and recently closed paper positions.
+
+## Rules
+
+```bash
+copy rules
+```
+
+## Provider health
+
+```bash
+copy doctor --probe
+```
+
+## Optional website wrapper
+
+```bash
+copy web
+```

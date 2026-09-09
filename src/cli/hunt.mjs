@@ -1,3 +1,28 @@
 import {header,lineEvent} from './render.mjs';
 import {soft} from './ansi.mjs';
-export async function hunt(rt,{fireOnly=false,forSec=0,json=false}={}){await rt.init();await rt.sync();if(!json)console.log(header(rt,'hunt'));const started=Date.now(),seen=new Set();const print=()=>{for(const cand of rt.candidates){if(fireOnly&&cand.verdict!=='FIRE')continue;if(seen.has(cand.id))continue;seen.add(cand.id);console.log(json?JSON.stringify({ts:new Date().toISOString(),verdict:cand.verdict,score:cand.token.score,symbol:cand.token.symbol,token:cand.token.address,trader:cand.trader?.handle||cand.trader?.name||null,reasons:cand.reasons,marketCap:cand.token.marketCap,liquidity:cand.token.liquidity}):lineEvent(cand))}};print();while(!forSec||Date.now()-started<forSec*1000){await new Promise(r=>setTimeout(r,15000));await rt.sync();print()}if(!json)console.log(soft('done'))}
+
+export async function hunt(rt,{fireOnly=false,forSec=0,json=false}={}){
+  await rt.init();await rt.sync();
+  if(!json)console.log(header(rt,'hunt'));
+  const started=Date.now(),seen=new Set();
+  const print=()=>{
+    for(const e of [...rt.events].reverse()){
+      if(seen.has(e.id))continue;
+      if(fireOnly&&e.candidate?.verdict!=='FIRE')continue;
+      seen.add(e.id);
+      if(json){
+        const c=e.candidate,t=c?.token;
+        console.log(JSON.stringify({ts:e.at,type:e.type,verdict:c?.verdict||null,score:t?.score??null,symbol:t?.symbol??null,token:t?.address??null,trader:c?.trader?.handle||c?.trader?.name||null,message:e.message,reasons:c?.reasons||[],marketCap:t?.marketCap??null,liquidity:t?.liquidity??null}));
+      }else console.log(lineEvent(e));
+    }
+  };
+  print();
+  let nextSync=Date.now()+12000,nextPulse=Date.now()+2200,nextDemo=Date.now()+1400;
+  while(!forSec||Date.now()-started<forSec*1000){
+    await new Promise(r=>setTimeout(r,250));
+    if(Date.now()>=nextPulse){rt.heartbeat();nextPulse=Date.now()+2200;print()}
+    if(rt.demo&&Date.now()>=nextDemo){rt.demoTick();nextDemo=Date.now()+1400;print()}
+    if(Date.now()>=nextSync){await rt.sync();await rt.markPositions();nextSync=Date.now()+12000;print()}
+  }
+  if(!json)console.log(soft('done'));
+}
