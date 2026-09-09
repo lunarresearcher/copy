@@ -3,3 +3,6 @@ node_modules/
 .DS_Store
 data/cache.json.tmp
 npm-debug.log*
+
+data/cache.json
+data/runtime.json
