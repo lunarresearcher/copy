@@ -59,7 +59,13 @@ function wallRead(cand,rules){
 
 function mirrorLines(rt,max=8){
   const paper=(rt.store.positions||[]).map(p=>({kind:'PAPER',trader:p.trader,symbol:p.symbol,pnlPct:Number(p.pnlPct||0),deltaPct:0,history:[0,Number(p.pnlPct||0)],startedAt:p.openedAt}));
-  const all=[...paper,...rt.shadowCopies].slice(0,max);
+  const shadows=rt.shadowCopies||[];
+  const room=Math.max(0,max-paper.length);
+  // Rotate the visible wallet window automatically. A dense mirror pool can therefore
+  // contain dozens of traders without the bottom desk looking frozen.
+  const offset=shadows.length?Math.floor(Date.now()/1100)%shadows.length:0;
+  const rotated=shadows.length?[...shadows.slice(offset),...shadows.slice(0,offset)].slice(0,room):[];
+  const all=[...paper.slice(0,max),...rotated].slice(0,max);
   if(!all.length)return[muted('waiting for passing wallet + priced RH market')];
   return all.map(x=>{
     const label=x.kind==='PAPER'?c(A.brightGreen,'PAPER '):x.replay?amber('R-SHDW'):lime('SHADOW');
@@ -93,7 +99,7 @@ export function renderTui(rt,state){
   for(let i=0;i<6;i++){
     const rhs=i===0?`${miniBara(Date.now())}  ${lime('COPYTRADE ENGINE')}  ${muted('Robinhood Chain')}`
       :i===1?`${soft('mode')} ${st.mode==='LIVE'?c(A.brightGreen,'LIVE'):st.mode==='REPLAY'?amber('REPLAY'):muted(st.mode)}  ${soft('fomo')} ${st.providers.fomo}  ${soft('trades')} ${st.providers.trades}  ${soft('dex')} ${st.providers.dex}  ${soft('rpc')} ${st.providers.rpc}`
-      :i===2?`${soft('hunters')} ${c(A.white,st.hunters)}  ${soft('tokens')} ${c(A.white,st.tokens)}  ${soft('wallet flow')} ${c(A.white,st.trades)}  ${soft('events')} ${c(A.white,st.events)}`
+      :i===2?`${soft('hunters')} ${c(A.white,st.hunters)}  ${soft('tokens')} ${c(A.white,st.tokens)}${st.mode==='REPLAY'?lime(' ↑'):''}  ${soft('wallet flow')} ${c(A.white,st.trades)}  ${soft('stream')} ${c(A.white,st.totalEvents||st.events)}`
       :i===3?`${soft('copy wallets')} ${c(A.white,`${st.shadowCopies} mirrors`)}  ${soft('paper')} ${c(A.white,st.positions)}  ${soft('budget')} ${c(A.white,`${Number(st.spentEth).toFixed(3)}/${rules.sessionBudgetEth.toFixed(3)} ETH`)}`
       :i===4?`${soft('COPY FLOW BOX')} edge≥${rules.minSourceEdge} · depth≥${rules.minDepthPct.toFixed(1)}% · turn≥${rules.minTurnover.toFixed(2)}x · momo ${rules.momentumFloorPct}…+${rules.momentumCeilPct}%`
       :state.engine?c(A.brightGreen,'ENGINE RUNNING')+`  ${lime(scanner)} ${muted(`scanner tick · refresh ${nextSync}s · p pause · q quit`)}`:amber('ENGINE PAUSED')+`  ${muted('p resume · r sync · q quit')}`;
@@ -111,7 +117,7 @@ export function renderTui(rt,state){
   const selectedEvent=events[state.selected]||rt.events?.[0];
   const sel=selectedEvent?.candidate||rt.candidates?.[0];
 
-  const bottomRows=11;
+  const bottomRows=Math.min(18,Math.max(12,H-22));
   const feedHeight=Math.max(14,H-6-1-1-bottomRows);
   const leftRows=[];
   leftRows.push(`${soft(' LIVE EVENT STREAM ')} ${state.filter==='all'?lime('ALL'):state.filter==='fire'?c(A.brightGreen,'FIRE'):danger('SKIP')}  ${soft('wallet entries + market intake + marks + COPY decisions')}`);
@@ -128,7 +134,7 @@ export function renderTui(rt,state){
     detail.push(`${soft('event')} ${selectedEvent?typeTag(selectedEvent.type):'—'} ${selectedEvent?muted(age(selectedEvent.at)+' ago'):''}`);
     detail.push(`${soft('depth')} ${Number(m.depthPct||0).toFixed(2)}%   ${soft('turn')} ${Number(m.turnover||0).toFixed(2)}x   ${soft('momo')} ${pct(m.momentum)}`);
     detail.push(`${soft('market cap')} ${usd(t.marketCap)}   ${soft('liq')} ${usd(t.liquidity)}`);
-    detail.push(`${soft('contract')} ${short(t.address)}   ${links(t.address)}`);
+    detail.push(t.replay?`${soft('market id')} ${amber(t.address)}   ${amber('REPLAY ONLY')}`:`${soft('contract')} ${short(t.address)}   ${links(t.address)}`);
     if(sel.pnl!=null)detail.push(`${soft('source pnl')} ${pnl(sel.pnl)}`);
     detail.push('');
     detail.push(soft('COPY FLOW WALLS'));
@@ -148,14 +154,16 @@ export function renderTui(rt,state){
 
   lines.push(soft(hr(left-1))+soft('┼')+soft(hr(right)));
 
-  const mirrors=mirrorLines(rt,8);
+  const mirrors=mirrorLines(rt,Math.max(10,bottomRows-2));
   const recent=rt.events?.slice(0,3)||[];
-  const bottomLeft=[`${soft(' COPY WALLETS / MIRROR DESK ')} ${st.mode==='REPLAY'?amber('replay shadows'):muted('live-confirmed pairs + paper copies')}`,...mirrors];
+  const bottomLeft=[`${soft(' COPY WALLETS / MIRROR DESK ')} ${st.mode==='REPLAY'?amber(`${st.shadowCopies} rotating replay mirrors`):muted(`${st.shadowCopies} live-confirmed mirrors + paper`)}`,...mirrors];
   while(bottomLeft.length<bottomRows)bottomLeft.push('');
   const hot=radarLines(rt,3);
   const bottomRight=[
     `${soft('FLOW')} ${st.mode==='REPLAY'?amber('REPLAY DATA'):st.mode==='LIVE'?c(A.brightGreen,'LIVE READS'):muted('SNAPSHOT FALLBACK')}`,
     `${soft('latest')} ${recent[0]?`${typeTag(recent[0].type)} ${trunc(recent[0].message,Math.max(10,right-18))}`:muted('waiting')}`,
+    `${soft('intake')} ${st.mode==='REPLAY'?lime(`continuous · ${st.tokens} markets and growing`):muted(`${st.tokens} discovered RH markets`)}`,
+    `${soft('mirrors')} ${c(A.white,st.shadowCopies)} wallets · pairs rotate · PnL marks fast`,
     `${soft('queue')} ${st.positions}/${rules.maxPositions} paper · ${(rules.sessionBudgetEth-Number(st.spentEth)).toFixed(3)} ETH left`,
     `${soft('HOT NOW')} ${hot[0]||muted('waiting')}`,
     `${soft('NEXT')}    ${hot[1]||muted('waiting')}`,

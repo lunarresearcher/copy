@@ -1,5 +1,12 @@
 # COPY
 
+## v15: endless stream + rotating copy wallets
+
+`npm run showcase` is intentionally alive: the REPLAY universe boots with 50+ markets, adds a new replay-labeled token every ~1.8 seconds, keeps a deep rolling event history, rotates wallet/token pairs, and marks mirror PnL roughly every second. The counter is not capped at 35; it continues growing for the session.
+
+The COPY WALLETS desk now keeps up to 32 mirrors in the pool and automatically scrolls through them, so a normal terminal shows roughly 16 different traders at a time. Pair rotation and fast PnL marks are part of REPLAY showcase mode. Live mode never invents wallets, trades, or tokens: it only grows from Fomo / Robinhood / DEX reads and labels fallback state explicitly.
+
+
 > **A live-first Robinhood Chain copytrade terminal. Fomo finds the wallet. COPY keeps scanning, scores the token, explains the refusal, and tracks the paper mirror.**
 
 ![COPY terminal](./assets/terminal.png)
@@ -20,7 +27,7 @@ Node 20+ is enough. There are no npm runtime dependencies.
 
 ## The terminal does not sit still
 
-The v1.4 terminal is built around a moving event stream rather than a static table. COPYBARA now runs beside the COPY wordmark while the scanner is active.
+The v1.5 terminal is built around a moving event stream rather than a static table. COPYBARA now runs beside the COPY wordmark while the scanner is active.
 
 While the engine is running it continuously writes:
 
@@ -42,7 +49,7 @@ Even during a quiet market the scanner keeps rotating through the current univer
 
 ## COPY WALLETS
 
-The bottom desk is now a dense **10-line mirror desk** in showcase mode and grows from confirmed trader/token pairs in live mode. It shows two different things explicitly:
+The bottom desk is now a **32-wallet rotating mirror pool** in showcase mode and grows from confirmed trader/token pairs in live mode. A normal 44-row terminal shows about 16 wallets at once, and the visible window rotates automatically. It shows two different things explicitly:
 
 - **SHADOW** — a local mark of a passing profitable-wallet/token pair. It is analytics only and does not claim a trade was executed.
 - **PAPER** — a paper copy you actually opened with `space`.
@@ -149,7 +156,7 @@ With wallet activity available, a newly seen Fomo BUY/SELL becomes a real `BUY`/
 
 ## COPY FLOW BOX
 
-The terminal no longer gates tokens with the old generic `score + max market cap + min liquidity` trio. v1.4 uses its own copytrade-oriented flow box:
+The terminal no longer gates tokens with the old generic `score + max market cap + min liquidity` trio. v1.5 uses its own copytrade-oriented flow box:
 
 ```text
 source edge             >= 58 COPY DNA

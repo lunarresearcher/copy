@@ -17,11 +17,11 @@ export async function hunt(rt,{fireOnly=false,forSec=0,json=false}={}){
     }
   };
   print();
-  let nextSync=Date.now()+12000,nextPulse=Date.now()+2200,nextDemo=Date.now()+1400;
+  let nextSync=Date.now()+12000,nextPulse=Date.now()+(rt.demo?1450:2200),nextDemo=Date.now()+900;
   while(!forSec||Date.now()-started<forSec*1000){
     await new Promise(r=>setTimeout(r,250));
-    if(Date.now()>=nextPulse){rt.heartbeat();nextPulse=Date.now()+2200;print()}
-    if(rt.demo&&Date.now()>=nextDemo){rt.demoTick();nextDemo=Date.now()+1400;print()}
+    if(Date.now()>=nextPulse){rt.heartbeat();nextPulse=Date.now()+(rt.demo?1450:2200);print()}
+    if(rt.demo&&Date.now()>=nextDemo){rt.demoTick();nextDemo=Date.now()+900;print()}
     if(Date.now()>=nextSync){await rt.sync();await rt.markPositions();nextSync=Date.now()+12000;print()}
   }
   if(!json)console.log(soft('done'));

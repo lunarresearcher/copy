@@ -40,10 +40,10 @@ export async function terminal(rt,{demo=false}={}){
   });
 
   renderTimer=setInterval(render,250);
-  pulseTimer=setInterval(()=>{if(state.engine){rt.heartbeat();render()}},2200);
+  pulseTimer=setInterval(()=>{if(state.engine){rt.heartbeat();render()}},demo?1450:2200);
   syncTimer=setInterval(async()=>{if(state.engine||!demo){await rt.sync();state.nextSyncAt=Date.now()+syncEvery;render()}},syncEvery);
-  markTimer=setInterval(async()=>{if(state.engine){await rt.markPositions();rt.refreshShadowCopies();render()}},1800);
-  if(demo)demoTimer=setInterval(()=>{if(state.engine){rt.demoTick();render()}},1400);
+  markTimer=setInterval(async()=>{if(state.engine){await rt.markPositions();rt.refreshShadowCopies();render()}},demo?950:1800);
+  if(demo)demoTimer=setInterval(()=>{if(state.engine){rt.demoTick();render()}},900);
   render();
 
   await new Promise(resolve=>{const poll=setInterval(()=>{if(stopped){clearInterval(poll);resolve()}},100)});
